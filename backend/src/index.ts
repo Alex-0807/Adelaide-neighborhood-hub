@@ -26,7 +26,7 @@ app.get('/api/ev/nearby', async (req, res) => {
     const lat = Number(req.query.lat);
     const lng = Number(req.query.lng);
     const distance_km = Number(req.query.distance_km ?? 2);
-    const max = Number(req.query.max ?? 30);
+    const max = Number(req.query.max ?? 14);
 
     const valid =
       Number.isFinite(lat) && Number.isFinite(lng) &&

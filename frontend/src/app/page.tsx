@@ -44,7 +44,7 @@ const isSecure = 1
   const goDashboard = (lat: number, lng: number, source: 'gps' | 'manual' | 'last') => {
     //source could only be 'gps', 'manual' or 'last'
     // lat.tofixed: 保留 6 位小数
-    const qs = `lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}&src=${source}`; //generate query string
+    const qs = `lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}&src=${source}&distance_km=${99}`; //generate query string
     router.push(`/dashboard?${qs}`);//navigate to dashboard page with query string
   };
 

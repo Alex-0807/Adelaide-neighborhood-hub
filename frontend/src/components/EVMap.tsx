@@ -1,32 +1,47 @@
-import { useEffect, useState } from "react";
+'use client';
 
-type EVProps = {
-  lat: number;
-  lng: number;
-  src: string | null;
+import { useEffect, useRef } from 'react';
+import maplibregl from 'maplibre-gl';
+
+type EVMapProps = {
+  center: { lat: number; lng: number };
 };
-export default function NearbyEV({ lat, lng, src }: EVProps) {
-  const [stations, setStations] = useState<any[]>([]);
+
+export default function EVMap({ center }: EVMapProps) {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    const loadStations = async () => {
-      try {
-        const resp = await fetch(`http://localhost:3001/api/ev/nearby?lat=${lat}&lng=${lng}&distance_km=99&max=10`);
-        const data = await resp.json();
-        setStations(data.items);
-      } catch (err) {
-        console.error("API error:", err);
-      }
-    };
+    if (mapRef.current) return; // 避免重复初始化
+    if (!mapContainer.current) return;
 
-    loadStations(); // 调用异步函数
-  }, []);
+    // 初始化地图
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: 'https://demotiles.maplibre.org/style.json', // 免费 demo 样式
+      center: [center.lng, center.lat],
+      zoom: 14,
+    });
+
+    mapRef.current = map;
+
+    // 在中心点放一个 Marker
+    new maplibregl.Marker({ color: 'blue' })
+      .setLngLat([center.lng, center.lat])
+      .setPopup(new maplibregl.Popup().setText('你的位置'))
+      .addTo(map);
+
+    return () => {
+      map.remove();
+    };
+  }, [center]);
 
   return (
-    <ul>
-      {stations.map(s => (
-        <li key={s.id}>{s.title} — {s.address}</li>
-      ))}
-    </ul>
+    <div> <div
+      ref={mapContainer}
+      style={{ width: '100%', height: '400px', borderRadius: '8px'}}
+    />
+    test</div>
+   
   );
 }

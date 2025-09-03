@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import NearbyEV from '@/components/EVMap';
-
+import NearbyEV from '@/components/EVList';
+import EVMap from '@/components/EVMap';
 export default function Dashboard() {
   const sp = useSearchParams();
   const router = useRouter();
@@ -12,9 +12,10 @@ export default function Dashboard() {
     const lat = Number(sp.get('lat'));
     const lng = Number(sp.get('lng'));
     const src = sp.get('src') ?? 'unknown';
+    const distance_km = Number(sp.get('distance_km') ?? 88);
     const valid =
       Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-    return { lat, lng, src, valid };
+    return { lat, lng, src,distance_km, valid };
   }, [sp]);
 
   if (!params.valid) {
@@ -44,13 +45,14 @@ export default function Dashboard() {
       {/* 地图占位：明天接入 MapLibre */}
       <section className="h-[320px] rounded border grid place-items-center text-gray-500">
         Map placeholder
+        <EVMap center={{ lat: params.lat, lng: params.lng }} />
       </section>
 
       {/* 三个信息卡：今天先占位，先做 EV 的接口明天接 */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="border rounded p-4">
           <div className="font-semibold mb-1">EV 充电桩（即将接入）
-            <NearbyEV lat={params.lat} lng={params.lng} src={params.src} />
+            <NearbyEV lat={params.lat} lng={params.lng} src={params.src} distance_km={params.distance_km} />
           </div>
           <div className="text-sm text-gray-600">将基于当前位置调用后端 /api/ev/nearby</div>
         </div>
