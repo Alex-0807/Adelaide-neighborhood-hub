@@ -43,8 +43,7 @@ export default function Dashboard() {
       </header>
 
       {/* 地图占位：明天接入 MapLibre */}
-      <section className="h-[320px] rounded border grid place-items-center text-gray-500">
-        Map placeholder
+      <section className="h-[320px] min-w-[360px] rounded border grid place-items-center text-gray-500">
         <EVMap center={{ lat: params.lat, lng: params.lng }} />
       </section>
 
