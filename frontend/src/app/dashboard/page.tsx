@@ -21,9 +21,9 @@ export default function Dashboard() {
   if (!params.valid) {
     return (
       <main className="p-6 space-y-3">
-        <div className="text-red-600">坐标无效或缺失。</div>
+        <div className="text-red-600">invalid location</div>
         <button onClick={() => router.push('/')} className="underline">
-          ← 返回首页重新选择位置
+          ← Back to Home
         </button>
       </main>
     );
@@ -32,13 +32,13 @@ export default function Dashboard() {
   return (
     <main className="p-6 space-y-6">
       <button onClick={() => router.push('/')} className="underline">
-        ← 重新选择位置
+        ← Back to Home
       </button>
 
       <header>
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="text-sm text-gray-600">
-          中心点：{params.lat.toFixed(6)}, {params.lng.toFixed(6)}（来源：{params.src}）
+          Central point: {params.lat.toFixed(6)}, {params.lng.toFixed(6)}（source：{params.src}）
         </div>
       </header>
 
@@ -50,18 +50,18 @@ export default function Dashboard() {
       {/* 三个信息卡：今天先占位，先做 EV 的接口明天接 */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="border rounded p-4">
-          <div className="font-semibold mb-1">EV 充电桩（即将接入）
+          <div className="font-semibold mb-1">EV Charging Station
             <NearbyEV lat={params.lat} lng={params.lng} src={params.src} distance_km={params.distance_km} />
           </div>
-          <div className="text-sm text-gray-600">将基于当前位置调用后端 /api/ev/nearby</div>
+          <div className="text-sm text-gray-600">The backend will be invoked based on the current location./api/ev/nearby</div>
         </div>
         <div className="border rounded p-4">
-          <div className="font-semibold mb-1">附近公交（即将接入）</div>
+          <div className="font-semibold mb-1">neraby public traffic</div>
           <div className="text-sm text-gray-600">Adelaide Metro GTFS-Realtime</div>
         </div>
         <div className="border rounded p-4">
-          <div className="font-semibold mb-1">开发申请（即将接入）</div>
-          <div className="text-sm text-gray-600">PlanningAlerts（按半径筛选）</div>
+          <div className="font-semibold mb-1">another section (later)</div>
+          <div className="text-sm text-gray-600">PlanningAlerts（sorted by radius）</div>
         </div>
       </div>
     </main>

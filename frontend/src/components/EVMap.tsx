@@ -2,57 +2,80 @@
 
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 type EVMapProps = { center: { lat: number; lng: number } };
 
 export default function EVMap({ center }: EVMapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);// could use it to control the div element by ref
+  const mapRef = useRef<maplibregl.Map | null>(null);// store the map instance
 
+  // 仅初始化一次
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return;
 
-    const map = new maplibregl.Map({
-      container: mapContainer.current,
-      // ⚠️ 直接内联 OSM 栅格样式，绕过远程 style.json
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: [
-              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            ],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
+    // 等下一帧，确保容器已布局（可选但稳妥）
+    const raf = requestAnimationFrame(() => {
+      const map = new maplibregl.Map({
+        container: mapContainer.current!,
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: 'raster',
+              tiles: [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              ],
+              tileSize: 256,
+              attribution: '© OpenStreetMap contributors',
+            },
           },
+          layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
         },
-        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
-      },
-      center: [center.lng, center.lat],
-      zoom: 14,
-      
+        center: [center.lng, center.lat],
+        zoom: 14,
+      });
+
+      mapRef.current = map;
+
+      map.on('load', () => {
+        map.resize(); // 首次确保尺寸正确
+        new maplibregl.Marker({ color: 'blue' })
+          .setLngLat([center.lng, center.lat])
+          .setPopup(new maplibregl.Popup().setText('Your position'))
+          .addTo(map);
+      });
+
+      map.on('style.load', () => console.log('Map style loaded'));
+      map.on('error', (e) => console.error('Map error:', e?.error || e));
     });
 
-    mapRef.current = map;
+    // 监测容器尺寸变化，及时 resize
+    let ro: ResizeObserver | null = null;
+    if (mapContainer.current) {
+      ro = new ResizeObserver(() => mapRef.current?.resize());
+      ro.observe(mapContainer.current);
+    }
 
-    map.on('load', () => {
-      map.resize(); // calculate the size of the map
-      new maplibregl.Marker({ color: 'blue' })// create a blue marker
-        .setLngLat([center.lng, center.lat])  // set the position of the marker
-        .setPopup(new maplibregl.Popup().setText('Your position'))// add popup to the marker when clicking
-        .addTo(map);
-    });
-      new maplibregl.Marker({ color: 'green' }) // 可用的桩
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
 
-    // 一些调试日志（如果还有问题，看看控制台）
-    map.on('style.load', () => console.log('Map style loaded'));
-    map.on('error', (e) => console.error('Map error:', e?.error || e));
-
-    return () => map.remove();
+  // 当 center 变化时，飞过去（而不是重建地图）
+  useEffect(() => {
+    mapRef.current?.flyTo({ center: [center.lng, center.lat], zoom: 14 });
   }, [center.lat, center.lng]);
 
-  return <div ref={mapContainer} className="w-full h-full rounded" />;
+  return (
+    <div
+      ref={mapContainer}
+      className="w-full h-full min-h-[320px] rounded"
+    />
+  );
 }
