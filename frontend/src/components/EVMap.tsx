@@ -3,12 +3,53 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { it } from 'node:test';
+import { createRoot } from "react-dom/client";
 
-type EVMapProps = { center: { lat: number; lng: number } };
+type Item = {
+  id: number;
+  title: string;
+  lat: number;
+  lng: number;
+  address?: string;
+  distanceKm?: number;
+  status?: string;
+  powerKW?: number;
+  connectionType?: string;
+}
 
-export default function EVMap({ center }: EVMapProps) {
+type EVProps = {
+  items: Item[];
+};
+type EVMapProps = { center: { lat: number; lng: number }, items: Item[] };
+
+function goDirection(lat: number, lng: number) {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  window.open(url, "_blank");}
+
+
+function EVPopup({ item, goDirection }: { item: any; goDirection: () => void }) {
+  return (
+    <div>
+      <div><strong>{item.title}</strong></div>
+      <div>{item.distanceKm?.toFixed(2)} km away</div>
+      <div>{item.address}</div>
+      <div>Type: {item.connectionType || 'N/A'}</div>
+      <div>Power: {item.powerKW ? item.powerKW + ' kW' : 'N/A'}</div>
+      <button onClick={goDirection}
+              className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">
+        Direction      
+      </button>
+    </div>
+  );
+}
+
+
+export default function EVMap({ center, items }: EVMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);// could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null);// store the map instance
+  
+  console.log('items',items);
 
   // 仅初始化一次
   useEffect(() => {
@@ -67,10 +108,28 @@ export default function EVMap({ center }: EVMapProps) {
     };
   }, []);
 
-  // 当 center 变化时，飞过去（而不是重建地图）
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  items.forEach((item) => {
+    const node = document.createElement("div");
+    createRoot(node).render(
+    <EVPopup item={item} goDirection={()=>goDirection(item.lat, item.lng)} />//use inline arrow function to pass parameter
+      );
+    new maplibregl.Marker({ color: item.status === "up" ? "green" : "red" })
+      .setLngLat([item.lng, item.lat])
+      .setPopup(
+    new maplibregl.Popup().setDOMContent(node)
+  )
+      .addTo(mapRef.current!);
+  });
+}, [items]);
+
+  // when center changes, fly to the new center
   useEffect(() => {
     mapRef.current?.flyTo({ center: [center.lng, center.lat], zoom: 14 });
   }, [center.lat, center.lng]);
+// console.log(items);
 
   return (
     <div
