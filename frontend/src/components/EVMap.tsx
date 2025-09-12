@@ -16,7 +16,11 @@ type Item = {
   powerKW?: number;
   connectionType?: string;
 }
-
+type MarkerEntry = {
+  id: number;
+  marker: maplibregl.Marker;
+  popup: maplibregl.Popup;
+};
 type EVMapProps = { 
   center: { lat: number; lng: number }, 
   items: Item[],
@@ -28,7 +32,7 @@ function goDirection(lat: number, lng: number) {
   window.open(url, "_blank");}
 
 
-function EVPopup({ item, goDirection }: { item: any; goDirection: () => void }) {
+function EVPopup({ item, goDirection }: { item: Item; goDirection: () => void }) {
   return (
     <div>
       <div><strong>{item.title}</strong></div>
@@ -48,7 +52,7 @@ function EVPopup({ item, goDirection }: { item: any; goDirection: () => void }) 
 export default function EVMap({ center, items ,selectedId, onSelect}: EVMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);// could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null);// store the map instance
-  const markersRef = useRef<any[]>([]);// array to store the markers, useless for now, probable useful in the future
+  const markersRef = useRef<MarkerEntry[]>([]);// array to store the markers, useless for now, probable useful in the future
 
   // console.log('items',items);
   console.log('selected id:',selectedId);

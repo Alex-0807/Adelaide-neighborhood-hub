@@ -14,13 +14,12 @@ export default function Home() {
   const [last, setLast] = useState<{ lat: number; lng: number } | null>(null);
 
   // 仅在浏览器端判断「是否安全环境」
-const isSecure = 1
-  ? useMemo(() => {
-      if (typeof window === 'undefined') return false;
-      const host = window.location.hostname;
-      return window.isSecureContext || host === 'localhost' || host === '127.0.0.1';
-    }, [])
-  : '';
+const isSecure = useMemo(() => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return window.isSecureContext || host === 'localhost' || host === '127.0.0.1';
+}, []);
+
 
   
   
@@ -51,7 +50,7 @@ const isSecure = 1
   const locate = async () => {
     setError(null);
     if (!isSecure) {
-      setError('需要 HTTPS 或本地 localhost 才能使用浏览器定位，请改用手动输入。');
+      setError('need HTTPS or localhost, please input manually');
       return;
     }
     if (!('geolocation' in navigator)) {//navigator is a browser api, provides info about the browser
@@ -98,7 +97,7 @@ const isSecure = 1
     <main className="p-6 max-w-xl mx-auto space-y-4">
       <h1 className="text-2xl font-bold">Adelaide Neighbourhood Hub</h1>
       <p className="text-sm text-gray-600">
-        仅用于在本地展示“附近”的信息。除非你点击查询，否则不会把你的坐标上传到服务器。
+        click the button to use your location, or input latitude and longitude manually.
       </p>
 
       <div className="space-y-2">
@@ -119,7 +118,7 @@ const isSecure = 1
             onClick={() => goDashboard(last.lat, last.lng, 'last')}
             className="block text-left underline text-sm"
           >
-            使用上次位置（{last.lat.toFixed(4)}, {last.lng.toFixed(4)})
+            use the last location（{last.lat.toFixed(4)}, {last.lng.toFixed(4)})
           </button>
         )}
       </div>
@@ -127,17 +126,17 @@ const isSecure = 1
       {error && <div className="text-red-600">{error}</div>}
 
       <div className="border rounded p-4 space-y-2">
-        <div className="font-medium">手动输入（兜底）</div>
+        <div className="font-medium">input manually</div>
         <div className="flex gap-2">
           <input
             className="flex-1 border rounded p-2"
-            placeholder="Latitude，例如 -34.9285"
+            placeholder="Latitude，such as -34.9285"
             value={latInput}
             onChange={(e) => setLatInput(e.target.value)}
           />
           <input
             className="flex-1 border rounded p-2"
-            placeholder="Longitude，例如 138.6007"
+            placeholder="Longitude，such as 138.6007"
             value={lngInput}
             onChange={(e) => setLngInput(e.target.value)}
           />
@@ -149,7 +148,7 @@ const isSecure = 1
         >
           Go
         </button>
-        {!manualValid && <div className="text-sm text-gray-600">范围：纬度 -90~90，经度 -180~180</div>}
+        {!manualValid && <div className="text-sm text-gray-600">range：lng -90~90，lag -180~180</div>}
       </div>
     </main>
   );
