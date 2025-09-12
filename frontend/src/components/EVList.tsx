@@ -32,7 +32,7 @@ export default function NearbyEV({ items, selectedId, onSelect}: EVProps) {
       {items.map(s => (
          <li
           key={s.id}
-          className={`p-3 rounded-lg border cursor-pointer transition 
+          className={`mb-2 p-3 rounded-lg border cursor-pointer transition 
             ${s.id === selectedId 
               ? "bg-blue-100 border-blue-400 text-blue-700 font-semibold shadow-md" 
               : "bg-white border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-sm"

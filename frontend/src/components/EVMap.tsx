@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { it } from 'node:test';
 import { createRoot } from "react-dom/client";
 
 type Item = {
@@ -18,9 +17,6 @@ type Item = {
   connectionType?: string;
 }
 
-type EVProps = {
-  items: Item[];
-};
 type EVMapProps = { 
   center: { lat: number; lng: number }, 
   items: Item[],
@@ -54,7 +50,6 @@ export default function EVMap({ center, items ,selectedId, onSelect}: EVMapProps
   const mapRef = useRef<maplibregl.Map | null>(null);// store the map instance
   const markersRef = useRef<any[]>([]);// array to store the markers, useless for now, probable useful in the future
 
-  //
   // console.log('items',items);
   console.log('selected id:',selectedId);
   const selectedItem = items.find((i) => i.id === selectedId) ?? null;
