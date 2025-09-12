@@ -13,6 +13,8 @@ type Item = {
 
 type EVProps = {
   items: Item[];
+  selectedId?: number;
+  onSelect: (id: number) => void;
 };
 type EVPropstest = {
   lat: number;
@@ -20,34 +22,29 @@ type EVPropstest = {
   src: string | null;
   distance_km?: number;
 };
-export default function NearbyEV({ items }: EVProps) {
-  // const [stations, setStations] = useState<any[]>([]);
-  // const [query, setQuery] = useState<{distance_km:number; max:number}>({distance_km:404,max:11});
+console.log("NearbyEV component loaded!");
 
-  // useEffect(() => {
-  //   const loadStations = async () => {
-  //     // console.log(distance_km);
-      
-  //     try {
-  //       const resp = await fetch(`http://localhost:3001/api/ev/nearby?lat=${lat}&lng=${lng}&distance_km=${distance_km}&max=10`);
-  //       const data = await resp.json();
-  //       setStations(data.items);
-  //       setQuery(data.query);
-  //     } catch (err) {
-  //       console.error("API error:", err);
-  //     }
-  //   };
-
-  //   loadStations(); // 调用异步函数
-  // }, []);
+export default function NearbyEV({ items, selectedId, onSelect}: EVProps) {
+// console.log("NearbyEV component loaded!");
 
   return (
     <ul>
       {items.map(s => (
-        <li key={s.id}>{s.title} — {s.address}</li>
+         <li
+          key={s.id}
+          className={`p-3 rounded-lg border cursor-pointer transition 
+            ${s.id === selectedId 
+              ? "bg-blue-100 border-blue-400 text-blue-700 font-semibold shadow-md" 
+              : "bg-white border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:shadow-sm"
+            }`}
+            onClick={() => {onSelect(s.id)}}
+        >
+          <div className="text-sm font-medium">{s.title}</div>
+          <div className="text-xs text-gray-500">{s.address}</div>
+        </li>
       ))}
-      {/* <li key={'query'}>distance_km: {query.distance_km}</li> */}
-      {/* <li>test</li> */}
+    {/* <div className="bg-red-500 text-white p-4">test</div> */}
+
     </ul>
   );
 }

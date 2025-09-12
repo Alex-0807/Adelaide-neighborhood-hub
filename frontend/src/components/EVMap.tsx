@@ -21,7 +21,11 @@ type Item = {
 type EVProps = {
   items: Item[];
 };
-type EVMapProps = { center: { lat: number; lng: number }, items: Item[] };
+type EVMapProps = { 
+  center: { lat: number; lng: number }, 
+  items: Item[],
+  selectedId?: number;
+  onSelect: (id: number) => void;};
 
 function goDirection(lat: number, lng: number) {
   const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
@@ -45,13 +49,18 @@ function EVPopup({ item, goDirection }: { item: any; goDirection: () => void }) 
 }
 
 
-export default function EVMap({ center, items }: EVMapProps) {
+export default function EVMap({ center, items ,selectedId, onSelect}: EVMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);// could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null);// store the map instance
-  
-  console.log('items',items);
+  const markersRef = useRef<any[]>([]);// array to store the markers, useless for now, probable useful in the future
 
-  // 仅初始化一次
+  //
+  // console.log('items',items);
+  console.log('selected id:',selectedId);
+  const selectedItem = items.find((i) => i.id === selectedId) ?? null;
+
+
+  // initialize the map only once
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return;
 
@@ -108,22 +117,60 @@ export default function EVMap({ center, items }: EVMapProps) {
     };
   }, []);
 
+
 useEffect(() => {
   if (!mapRef.current) return;
+  console.log("Updating markers for items:", items);
+  
+  // remove old markers
+  markersRef.current.forEach(m => m.marker.remove());
+  markersRef.current = [];
 
+  // add new markers
   items.forEach((item) => {
     const node = document.createElement("div");
     createRoot(node).render(
-    <EVPopup item={item} goDirection={()=>goDirection(item.lat, item.lng)} />//use inline arrow function to pass parameter
-      );
-    new maplibregl.Marker({ color: item.status === "up" ? "green" : "red" })
+      <EVPopup item={item} goDirection={() => goDirection(item.lat, item.lng)} />
+    );
+    const popup = new maplibregl.Popup({closeOnClick: false}).setDOMContent(node);
+
+    const marker = new maplibregl.Marker({ color: item.status === "up" ? "green" : "red" })
       .setLngLat([item.lng, item.lat])
-      .setPopup(
-    new maplibregl.Popup().setDOMContent(node)
-  )
+      // .setPopup(new maplibregl.Popup().setDOMContent(node))
       .addTo(mapRef.current!);
+    
+      marker.getElement().addEventListener("click", () => {
+    onSelect(item.id);   // when marker clicked, call onSelect with the item's id
+  });
+  markersRef.current.push({ id: item.id, marker, popup });
+
+    // if its selected, popup
+    // if (item.id === selectedId) {
+    //   console.log("popup for selected item:", item.id);
+      
+    //   marker.togglePopup();
+    // }
   });
 }, [items]);
+
+
+useEffect(() => {
+  console.log("Selected ID changed:", selectedId);
+  
+  if (selectedId == null || !mapRef.current) return;
+
+  markersRef.current.forEach(({ id, marker, popup }) => {
+    if (id === selectedId) {
+      // 打开选中 popup
+      popup.setLngLat(marker.getLngLat()).addTo(mapRef.current!);
+      mapRef.current?.flyTo({ center: marker.getLngLat(), zoom: 15 });
+    } else {
+      // 关闭其它 popup
+      popup.remove();
+    }
+  });
+}, [selectedId]);
+
 
   // when center changes, fly to the new center
   useEffect(() => {

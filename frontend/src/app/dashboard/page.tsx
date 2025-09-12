@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import NearbyEV from '@/components/EVList';
 import EVMap from '@/components/EVMap';
 export default function Dashboard() {
-    const sp = useSearchParams();
+    const sp = useSearchParams();//searchParams could get the query params from the url
     const router = useRouter();
 
     const params = useMemo(() => {
@@ -16,10 +16,11 @@ export default function Dashboard() {
     const valid =
       Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     return { lat, lng, src,distance_km, valid };
-  }, [sp]);
+  }, [sp]);//this useMemo could memoize the params object, so it only recalculates when sp changes
 
     const [stations, setStations] = useState<any[]>([]);
     const [query, setQuery] = useState<{distance_km:number; max:number}>({distance_km:404,max:11});
+    const [selectedId, setSelectedId] = useState<number>(107781);
     useEffect(() => {
       const loadStations = async () => {
         console.log(params.distance_km);
@@ -60,16 +61,19 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* 地图占位：明天接入 MapLibre */}
+      {/* EVMap */}
       <section className="h-[320px] min-w-[360px] rounded border grid place-items-center text-gray-500">
-        <EVMap items={stations} center={{ lat: params.lat, lng: params.lng }} />
+        <EVMap items={stations} center={{ lat: params.lat, lng: params.lng }}
+        selectedId={selectedId} onSelect={setSelectedId} />
       </section>
 
       {/* 三个信息卡：今天先占位，先做 EV 的接口明天接 */}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="border rounded p-4">
           <div className="font-semibold mb-1">EV Charging Station
-            <NearbyEV items={stations} />
+            <NearbyEV items={stations} selectedId={selectedId} onSelect={setSelectedId}/>
+            {/* <div className="bg-red-500 text-white p-4">testttttt</div> */}
+
           </div>
           <div className="text-sm text-gray-600">The backend will be invoked based on the current location./api/ev/nearby</div>
         </div>
