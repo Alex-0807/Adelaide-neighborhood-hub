@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
-    // 目标与模块解析（ESM in Node）
     "target": "ES2020",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
 
-    // 目录
     "rootDir": "src",
     "outDir": "dist",
 
-    // 类型与兼容
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["node"], // ← 很重要：启用 Node 内置类型
-        "typeRoots": ["./node_modules/@types"]
 
+    // 只保留这一条
+    "types": ["node"]
   },
   "include": ["src"]
 }
