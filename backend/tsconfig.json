@@ -14,7 +14,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": [] // ← 很重要：启用 Node 内置类型
+    "types": ["node"] // ← 很重要：启用 Node 内置类型
   },
   "include": ["src"]
 }
