@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import NearbyEV from '@/components/EVList';
 import EVMap from '@/components/EVMap';
+import { log } from 'console';
 type Item = {
   id: number;
   title: string;
@@ -18,12 +19,14 @@ type Item = {
 export default function Dashboard() {
     const sp = useSearchParams();//searchParams could get the query params from the url
     const router = useRouter();
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
     const params = useMemo(() => {
     const lat = Number(sp.get('lat'));
     const lng = Number(sp.get('lng'));
     const src = sp.get('src') ?? 'unknown';
     const distance_km = Number(sp.get('distance_km') ?? 88);
+    
     const valid =
       Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     return { lat, lng, src,distance_km, valid };
@@ -32,22 +35,24 @@ export default function Dashboard() {
     const [stations, setStations] = useState<Item[]>([]);
     const [query, setQuery] = useState<{distance_km:number; max:number}>({distance_km:404,max:11});
     const [selectedId, setSelectedId] = useState<number>(107781);
-    useEffect(() => {
-      const loadStations = async () => {
-        console.log(params.distance_km);
-        
-        try {
-          const resp = await fetch(`http://localhost:3001/api/ev/nearby?lat=${params.lat}&lng=${params.lng}&distance_km=${params.distance_km}&max=10`);
-          const data = await resp.json();
-          setStations(data.items);
-          setQuery(data.query);
-        } catch (err) {
-          console.error("API error:", err);
-        }
-      };
+ useEffect(() => {
+  console.log(API_BASE);
   
-      loadStations(); // 调用异步函数
-    }, []);
+  const loadStations = async () => {
+    const qs = new URLSearchParams({
+      lat: String(params.lat),
+      lng: String(params.lng),
+      distance_km: String(params.distance_km ?? 2),
+      max: '10',
+    });
+    const resp = await fetch(`${API_BASE}/api/ev/nearby?${qs}`);
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    setStations(data.items);
+    setQuery(data.query);
+  };
+  loadStations().catch(console.error);
+}, [params.lat, params.lng, params.distance_km]);
   if (!params.valid) {
     return (
       <main className="p-6 space-y-3">
