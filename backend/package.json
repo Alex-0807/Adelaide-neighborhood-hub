@@ -18,7 +18,7 @@
   "zod": "^4.0.17",
   "@types/express": "^5.0.3",
   "@types/cors": "^2.8.19",
-  "@types/node": "^24.2.1"
+  "@types/node": "^20.11.30"
 },
 "devDependencies": {
   "tsx": "^4.20.3",
