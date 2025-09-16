@@ -66,7 +66,7 @@ export default function Dashboard() {
 
   return (
     <main className="p-6 space-y-6">
-      <button onClick={() => router.push('/')} className="underline">
+      <button onClick={() => router.push('/')} className="block mt-1 px-3 py-1 text-sm rounded bg-black text-white hover:bg-gray-600">
         ← Back to Home
       </button>
 
@@ -78,7 +78,7 @@ export default function Dashboard() {
       </header>
 
       {/* EVMap */}
-      <section className="h-[320px] min-w-[360px] rounded border grid place-items-center text-gray-500">
+      <section className="h-[320px] min-w-[300px] rounded border grid place-items-center text-gray-500">
         <EVMap items={stations} center={{ lat: params.lat, lng: params.lng }}
         selectedId={selectedId} onSelect={setSelectedId} />
       </section>

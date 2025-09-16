@@ -12,18 +12,30 @@ export default function Home() {
   const [latInput, setLatInput] = useState('');
   const [lngInput, setLngInput] = useState('');
   const [last, setLast] = useState<{ lat: number; lng: number } | null>(null);
+  const [isSecure, setIsSecure] = useState(false);
 
-  // 仅在浏览器端判断「是否安全环境」
-const isSecure = useMemo(() => {
-  if (typeof window === 'undefined') return false;
-  const host = window.location.hostname;
-  return window.isSecureContext || host === 'localhost' || host === '127.0.0.1';
-}, []);
+  // Check if the context is secure (HTTPS or localhost)
+// const isSecure = useMemo(() => {
+//   if (typeof window === 'undefined') return false;
+//   const host = window.location.hostname;
+//   return window.isSecureContext || host === 'localhost' || host === '127.0.0.1';
+// }, []);
 
 
   
   
   useEffect(() => {
+      // 1. Make a state variable to store the value
+
+  // 2. Set it inside useEffect (runs only on client)
+    const host = window.location.hostname;
+    const secure =
+      window.isSecureContext ||
+      host === "localhost" ||
+      host === "127.0.0.1";
+    setIsSecure(secure);
+    console.log('Is secure context?', secure);
+    
     // 读取上次成功定位（可选）
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem('lastLocation');//localstorage is a browser api, used to store data in the browser
@@ -42,7 +54,7 @@ const isSecure = useMemo(() => {
 
   const goDashboard = (lat: number, lng: number, source: 'gps' | 'manual' | 'last') => {
     //source could only be 'gps', 'manual' or 'last'
-    // lat.tofixed: 保留 6 位小数
+    // lat.tofixed: keeps k decimal places
     const qs = `lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}&src=${source}&distance_km=${99}`; //generate query string
     router.push(`/dashboard?${qs}`);//navigate to dashboard page with query string
   };
@@ -94,8 +106,8 @@ const isSecure = useMemo(() => {
   }, [latInput, lngInput]);
 
   return (
-    <main className="p-6 max-w-xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">Adelaide Neighbourhood Hub</h1>
+    <main className="p-4 sm:p-6 md:p-8 max-w-2xl lg:max-w-3xl mx-auto space-y-4">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Adelaide Neighbourhood Hub</h1>
       <p className="text-sm text-gray-600">
         click the button to use your location, or input latitude and longitude manually.
       </p>
@@ -106,17 +118,17 @@ const isSecure = useMemo(() => {
           disabled={phase === 'locating'}
           className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
         >
-          {phase === 'locating' ? '定位中…' : 'Use my location'}
+          {phase === 'locating' ? 'locating' : 'Use my location'}
         </button>
         {!isSecure && (
           <div className="text-amber-600 text-sm">
-            当前非安全环境（需要 HTTPS 或 localhost），定位按钮将不可用。
+            Not a secure context (need HTTPS or localhost)，please input manually.
           </div>
         )}
         {last && (
           <button
             onClick={() => goDashboard(last.lat, last.lng, 'last')}
-            className="block text-left underline text-sm"
+            className="block mt-1 px-3 py-1 text-sm rounded bg-gray-500 text-white hover:bg-gray-600"
           >
             use the last location（{last.lat.toFixed(4)}, {last.lng.toFixed(4)})
           </button>
@@ -126,16 +138,16 @@ const isSecure = useMemo(() => {
       {error && <div className="text-red-600">{error}</div>}
 
       <div className="border rounded p-4 space-y-2">
-        <div className="font-medium">input manually</div>
-        <div className="flex gap-2">
+        <div className="font-medium">Input manually</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <input
-            className="flex-1 border rounded p-2"
+            className="w-full border rounded p-2"
             placeholder="Latitude，such as -34.9285"
             value={latInput}
             onChange={(e) => setLatInput(e.target.value)}
           />
           <input
-            className="flex-1 border rounded p-2"
+            className="w-full border rounded p-2"
             placeholder="Longitude，such as 138.6007"
             value={lngInput}
             onChange={(e) => setLngInput(e.target.value)}
