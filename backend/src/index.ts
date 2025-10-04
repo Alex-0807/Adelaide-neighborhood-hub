@@ -1,13 +1,19 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { z } from "zod";
+import { takeApiBudget } from "./lib/takeApiBudget.js";
+import { cache, inflight, takeUpstreamBudget} from "./lib/upstreamControl.js";
 
 dotenv.config();
 
 const app = express();
+// const cache = new Map<string, { expire: number; data: any }>();
+
 app.use(express.json());
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:3000" }));
 //cors: only allow specific server to access
+
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.get("/api/transit/nearby", (req, res) => {
   // 先返回假数据，等会再换真实API
@@ -21,19 +27,27 @@ app.get("/api/transit/nearby", (req, res) => {
 });
 // 1) 骨架版：先只校验参数，返回假数据，确认路由没问题
 // 2) 真实版：向 Open Charge Map 发请求 → 精简结果 → 返回给前端
+
+const NearbySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  distance_km: z.coerce.number().positive().max(99).default(2),
+  max: z.coerce.number().int().positive().max(50).default(14),
+});
 app.get('/api/ev/nearby', async (req, res) => {
+  // console.log('api called',req.query.lat,req.query.lng);
+  
+  const parsed = NearbySchema.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: "bad_request",
+      detail: parsed.error.flatten(),
+    });
+  }
+  const { lat, lng, distance_km, max } = parsed.data;
   try {
-    const lat = Number(req.query.lat);
-    const lng = Number(req.query.lng);
-    const distance_km = Number(req.query.distance_km ?? 2);
-    const max = Number(req.query.max ?? 14);
 
-    const valid =
-      Number.isFinite(lat) && Number.isFinite(lng) &&
-      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-    if (!valid) return res.status(400).json({ error: 'Invalid lat/lng' });
 
-    // 用 URL 构造器拼查询参数，避免手拼字符串出错
     const url = new URL('https://api.openchargemap.io/v3/poi');
     url.searchParams.set('output', 'json');
     url.searchParams.set('latitude', String(lat));
@@ -42,14 +56,46 @@ app.get('/api/ev/nearby', async (req, res) => {
     url.searchParams.set('distanceunit', 'KM');
     url.searchParams.set('maxresults', String(max));
 
-    // 说明：OCM 不强制要求 key，后续你申请了可以加在 header 里
+    const key = `${lat.toFixed(3)},${lng.toFixed(3)},${distance_km},${max}`;//cache key
+    const cached = cache.get(key);
+    if (cached && cached.expire > Date.now()) {
+      console.log('✅ Cache hit:', key);
+      return res.json(cached.data);
+    }
+    // check if there is already a request in flight
+    if (inflight.has(key)) {
+      console.log("⏳ Wait inflight:", key);
+      try {
+        const data = await inflight.get(key)!;
+        return res.json(data);
+      } catch (err) {
+        if (cached) return res.json(cached.data);
+        return res.status(502).json({ error: "upstream_error", detail: String(err) });
+    }
+  }    
+
+    console.log('⏳ Cache miss, fetching OCM API:', key);//if cache miss, fetch the third party api/website.
+
+    //going to fetch the api, so deduct the budget first.
+    const ip = (req.headers['x-forwarded-for']?.toString().split(',')[0] ?? req.ip ?? 'unknown') as string;
+    const token = takeUpstreamBudget(ip);
+    if (!token.ok) {
+      res.setHeader("Retry-After", Math.ceil((token.reset - Date.now()) / 1000));
+      if (cached) return res.json(cached.data);
+      return res.status(429).json({ error: "too_many_requests", message: "Upstream budget exceeded." });
+    }
+
+
+    
+/////////////
     const resp = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': process.env.OCM_API_KEY ?? ''// X-API-Key is optional, only this website reqiuires it
       }
     });
-//
+
+
     if (!resp.ok) {
       // 外部服务非 2xx，返回 502 表示“上游服务错误”
       const text = await resp.text();
@@ -58,27 +104,29 @@ app.get('/api/ev/nearby', async (req, res) => {
       // status 502 means the third party api/website has some problem.
     }
 
-    const raw = await resp.json(); // 原始数组（字段很多）
-    // 精简映射：只留下前端需要的关键字段
+    const raw = await resp.json(); // original data 
     const items = (Array.isArray(raw) ? raw : []).map((r: any) => {
       const p = r.AddressInfo ?? {};
       const conn = Array.isArray(r.Connections) && r.Connections.length ? r.Connections[0] : null;
       return {
-        id: r.ID,                                        // 站点 ID
-        title: p.Title ?? 'Unknown',                     // 站点名
+        id: r.ID,                                        //  ID
+        title: p.Title ?? 'Unknown',                     // Name
         lat: p.Latitude,
         lng: p.Longitude,
         address: [p.AddressLine1, p.Town].filter(Boolean).join(', '),
-        distanceKm: p.Distance,                          // 由 OCM 估算的距离
+        distanceKm: p.Distance,                          //Estimated distance
         status: r.StatusType?.IsOperational === false ? 'down' : 'up',
-        powerKW: conn?.PowerKW ?? null,                  // 功率（第一条连接）
-        connectionType: conn?.ConnectionType?.Title ?? null, // 接口类型
+        powerKW: conn?.PowerKW ?? null,                  
+        connectionType: conn?.ConnectionType?.Title ?? null, 
       };
     });
-
+    const data = { center: { lat, lng }, count: items.length, items, query: { distance_km, max } };
+    cache.set(key, { expire: Date.now() + 1 * 60 * 1000, data });
+    console.log('cache write',cached,cache.get(key));
+    
     res.json({ center: { lat, lng }, count: items.length, items, query: { distance_km, max } });
   } catch (e: any) {
-    // 兜底异常（比如网络崩了/JSON 解析失败等）
+    // backup
     res.status(500).json({ error: 'server_error', detail: e?.message ?? String(e) });
   }
 });

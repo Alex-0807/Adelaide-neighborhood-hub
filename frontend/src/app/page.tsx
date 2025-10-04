@@ -14,13 +14,6 @@ export default function Home() {
   const [last, setLast] = useState<{ lat: number; lng: number } | null>(null);
   const [isSecure, setIsSecure] = useState(false);
 
-  // Check if the context is secure (HTTPS or localhost)
-// const isSecure = useMemo(() => {
-//   if (typeof window === 'undefined') return false;
-//   const host = window.location.hostname;
-//   return window.isSecureContext || host === 'localhost' || host === '127.0.0.1';
-// }, []);
-
 
   
   

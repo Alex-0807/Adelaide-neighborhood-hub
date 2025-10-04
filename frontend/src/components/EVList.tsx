@@ -39,7 +39,7 @@ export default function NearbyEV({ items, selectedId, onSelect}: EVProps) {
             }`}
             onClick={() => {onSelect(s.id)}}
         >
-          <div className="text-sm font-medium">{s.title}</div>
+          <div className="text-sm font-medium">{s.title} <span className="text-gray-500">({s.distanceKm?.toFixed(1)}KM)</span></div>
           <div className="text-xs text-gray-500">{s.address}</div>
         </li>
       ))}

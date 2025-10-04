@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import NearbyEV from '@/components/EVList';
 import EVMap from '@/components/EVMap';
 import { log } from 'console';
+// import { toast } from "@/components/ui/use-toast";
+
 type Item = {
   id: number;
   title: string;
@@ -35,6 +37,7 @@ export default function Dashboard() {
     const [stations, setStations] = useState<Item[]>([]);
     const [query, setQuery] = useState<{distance_km:number; max:number}>({distance_km:404,max:11});
     const [selectedId, setSelectedId] = useState<number>(107781);
+
  useEffect(() => {
   console.log(API_BASE);
   
@@ -45,14 +48,24 @@ export default function Dashboard() {
       distance_km: String(params.distance_km ?? 2),
       max: '10',
     });
-    const resp = await fetch(`${API_BASE}/api/ev/nearby?${qs}`);
-    if (!resp.ok) throw new Error(await resp.text());
-    const data = await resp.json();
-    setStations(data.items);
-    setQuery(data.query);
+
+    try{
+      const resp = await fetch(`${API_BASE}/api/ev/nearby?${qs}`);
+      if (!resp.ok) throw new Error(await resp.text());
+      const data = await resp.json();
+      setStations(data.items);
+      setQuery(data.query);
+  }
+    catch{
+      alert('too many requests, please try again later');
+    }
+    
+
+
   };
   loadStations().catch(console.error);
 }, [params.lat, params.lng, params.distance_km]);
+
   if (!params.valid) {
     return (
       <main className="p-6 space-y-3">
