@@ -53,7 +53,7 @@ export default function Dashboard() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
   const [backendReady, setBackendReady] = useState(false);
   const [stations, setStations] = useState<Item[]>([]);
-  const [stops, setStops] = useState<TransitNearbyResponse[]>([]);
+  const [stops, setStops] = useState<Stop[]>([]);
   const [selectedId, setSelectedId] = useState<number>(107781);
 
   const params = useMemo(() => {
@@ -126,15 +126,19 @@ export default function Dashboard() {
       try {
         const resp = await fetch(`${API_BASE}/api/ev/nearby?${qs}`);
         if (!resp.ok) throw new Error(await resp.text());
-        const data = await resp.json();
+        const data = await resp.json(); // .json() will not call the backend again, it will parse the response body as json
         setStations(data.items);
       } catch {
-        alert("too many requests, please try again later");
+        alert("failed to fetch nerby EV stations, please try again later");
       }
 
       //fetch the station detail when params change
       try {
         const resp = await fetch(`${API_BASE}/api/transit/nearby?${qs}`);
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = await resp.json();
+        setStops(data.stops);
+        console.log("transit stops", data.stops);
       } catch {
         alert("failed to fetch transit data");
       }
@@ -173,6 +177,7 @@ export default function Dashboard() {
           center={{ lat: params.lat, lng: params.lng }}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          stops={stops}
         />
       </section>
 

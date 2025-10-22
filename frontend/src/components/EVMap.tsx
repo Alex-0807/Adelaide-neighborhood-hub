@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot } from "react-dom/client";
+import TransitPopup, {
+  TransitStopItem,
+} from "@/components/map/popups/TransitPopup";
+import { mountReactPopup } from "@/utils/maplibre";
 
 type Item = {
   id: number;
@@ -16,6 +20,22 @@ type Item = {
   powerKW?: number;
   connectionType?: string;
 };
+type Departure = {
+  routeShort: string;
+  headsign: string | null;
+  etaMin: number;
+  tripId: string;
+  vehicleId: string | null;
+  routeColor?: string;
+};
+type Stop = {
+  stopId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  distanceM: number;
+  departures: Departure[];
+};
 type MarkerEntry = {
   id: number;
   marker: maplibregl.Marker;
@@ -26,6 +46,7 @@ type EVMapProps = {
   items: Item[];
   selectedId?: number;
   onSelect: (id: number) => void;
+  stops?: Stop[];
 };
 
 function goDirection(lat: number, lng: number) {
@@ -64,12 +85,22 @@ export default function EVMap({
   items,
   selectedId,
   onSelect,
+  stops,
 }: EVMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null); // could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null); // store the map instance
   const markersRef = useRef<MarkerEntry[]>([]); // array to store the markers, useless for now, probable useful in the future
-
+  const transitMarkersRef = useRef<
+    {
+      id: string;
+      marker: maplibregl.Marker;
+      popup: maplibregl.Popup;
+      destroy?: () => void;
+    }[]
+  >([]);
   // console.log('items',items);
+  console.log("stops", stops);
+
   console.log("selected id:", selectedId);
   const selectedItem = items.find((i) => i.id === selectedId) ?? null;
 
@@ -140,6 +171,8 @@ export default function EVMap({
 
     // add new markers
     items.forEach((item) => {
+      // console.log("Adding marker for item:", item);
+
       const node = document.createElement("div");
       createRoot(node).render(
         <EVPopup
@@ -171,6 +204,39 @@ export default function EVMap({
       // }
     });
   }, [items]);
+
+  useEffect(() => {
+    if (!mapRef.current || !stops) return;
+
+    transitMarkersRef.current.forEach((m) => m.marker.remove());
+    transitMarkersRef.current = [];
+
+    stops.forEach((stop) => {
+      console.log("Adding transit stop marker:", stop);
+
+      const { popup, destroy } = mountReactPopup(
+        <TransitPopup
+          stop={stop}
+          onDirection={() => goDirection(stop.lat, stop.lng)}
+        />,
+        {
+          closeButton: false,
+        }
+      );
+
+      const marker = new maplibregl.Marker({ color: "orange" })
+        .setLngLat([stop.lng, stop.lat])
+        .setPopup(popup)
+        .addTo(mapRef.current!);
+
+      transitMarkersRef.current.push({
+        id: stop.stopId,
+        marker,
+        popup,
+        destroy,
+      });
+    });
+  }, [stops]);
 
   //when selectedId changes, open the popup for the selected marker and close others
   useEffect(() => {

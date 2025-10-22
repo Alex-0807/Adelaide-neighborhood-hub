@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { takeApiBudget } from "./lib/takeApiBudget.js";
 import { cache, inflight, takeUpstreamBudget } from "./lib/upstreamControl.js";
-
+import bookmarkRoutes from "./routes/bookmarks.js";
 dotenv.config();
 
 const app = express();
@@ -79,8 +79,6 @@ app.get("/api/transit/nearby", (req, res) => {
     },
   });
 });
-// 1) 骨架版：先只校验参数，返回假数据，确认路由没问题
-// 2) 真实版：向 Open Charge Map 发请求 → 精简结果 → 返回给前端
 
 const NearbySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
@@ -206,6 +204,7 @@ app.get("/api/ev/nearby", async (req, res) => {
       .json({ error: "server_error", detail: e?.message ?? String(e) });
   }
 });
+app.use("/api/bookmarks", bookmarkRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {

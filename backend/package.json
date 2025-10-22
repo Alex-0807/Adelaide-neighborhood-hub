@@ -11,19 +11,22 @@
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-"dependencies": {
-  "cors": "^2.8.5",
-  "dotenv": "^17.2.1",
-  "express": "^5.1.0",
-  "zod": "^4.0.17",
-  "@types/express": "^5.0.3",
-  "@types/cors": "^2.8.19",
-  "@types/node": "^20.11.30"
-},
-"devDependencies": {
-  "tsx": "^4.20.3",
-  "typescript": "^5.9.2"
-},
-"engines": { "node": "20.x" }
-
+  "dependencies": {
+    "@prisma/client": "^6.17.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.11.30",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "prisma": "^6.17.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": "20.x"
+  }
 }

@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  title     String
+  address   String?
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+}
