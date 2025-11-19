@@ -11,8 +11,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"],
 
-    // 只保留这一条
+    // keep only this line
     "types": ["node"]
   },
   "include": ["src"]

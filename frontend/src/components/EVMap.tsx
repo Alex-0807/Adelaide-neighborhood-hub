@@ -8,7 +8,7 @@ import TransitPopup, {
   TransitStopItem,
 } from "@/components/map/popups/TransitPopup";
 import { mountReactPopup } from "@/utils/maplibre";
-
+import { addBookmark } from "@/services/api";
 type Item = {
   id: number;
   title: string;
@@ -53,7 +53,21 @@ function goDirection(lat: number, lng: number) {
   const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   window.open(url, "_blank");
 }
-
+async function handlecollection() {
+  console.log("handle collection started");
+  try {
+    const res = await addBookmark({
+      userId: "123",
+      title: "Sample Bookmark",
+      address: "123 Sample St, Sample City",
+      lat: -34.9285,
+      lng: 138.6007,
+    });
+    console.log("Bookmark added:", res);
+  } catch (error) {
+    console.log("Error adding bookmark:", error);
+  }
+}
 function EVPopup({
   item,
   goDirection,
@@ -75,6 +89,12 @@ function EVPopup({
         className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
       >
         Direction
+      </button>
+      <button
+        onClick={handlecollection}
+        className="mt-2 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+      >
+        Collect
       </button>
     </div>
   );

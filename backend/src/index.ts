@@ -1,18 +1,24 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { z } from "zod";
 import { takeApiBudget } from "./lib/takeApiBudget.js";
 import { cache, inflight, takeUpstreamBudget } from "./lib/upstreamControl.js";
 import bookmarkRoutes from "./routes/bookmarks.js";
+import authRoutes from "./routes/auth.js";
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
 app.use(
-  cors({ origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:3000" })
+  cors({
+    origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:3000",
+    credentials: true, // allow browsers to include cookies
+  })
 );
+app.use(cookieParser()); // parse incoming cookies (token reading later)
 //cors: only allow specific server to access
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
@@ -205,6 +211,7 @@ app.get("/api/ev/nearby", async (req, res) => {
   }
 });
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/auth", authRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {

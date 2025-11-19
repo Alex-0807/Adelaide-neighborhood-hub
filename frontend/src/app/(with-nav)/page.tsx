@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import NavBar from "../../components/Navibar";
 
 type Phase = "idle" | "locating";
 
@@ -119,7 +120,8 @@ export default function Home() {
   }, [latInput, lngInput]);
 
   return (
-    <main className="p-4 sm:p-6 md:p-8 max-w-2xl lg:max-w-3xl mx-auto space-y-4">
+    <main className="p-4 sm:p-6 md:p-8 max-w-2xl lg:max-w-3xl mx-auto space-y-4 ">
+      {/* <NavBar /> */}
       <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
         Adelaide Neighbourhood Hub
       </h1>
