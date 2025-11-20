@@ -66,5 +66,10 @@ router.get("/me", auth, (req, res) => {
   } // without this if check, TS will complain that req.user may be undefined
   res.json({ userId: req.user.userId });
 });
+router.post("/logout", (req, res) => {
+  // clear cookie
+  res.clearCookie("token");
 
+  res.json({ message: "Logged out" });
+});
 export default router;
