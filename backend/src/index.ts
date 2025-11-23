@@ -7,6 +7,7 @@ import { takeApiBudget } from "./lib/takeApiBudget.js";
 import { cache, inflight, takeUpstreamBudget } from "./lib/upstreamControl.js";
 import bookmarkRoutes from "./routes/bookmarks.js";
 import authRoutes from "./routes/auth.js";
+import favouriteRoutes from "./routes/favourite.js";
 dotenv.config();
 
 const app = express();
@@ -160,7 +161,6 @@ app.get("/api/ev/nearby", async (req, res) => {
     });
 
     if (!resp.ok) {
-      // 外部服务非 2xx，返回 502 表示“上游服务错误”
       const text = await resp.text();
       return res
         .status(502)
@@ -212,6 +212,7 @@ app.get("/api/ev/nearby", async (req, res) => {
 });
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/auth", authRoutes);
+app.use("/favourite", favouriteRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {

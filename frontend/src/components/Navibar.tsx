@@ -21,12 +21,20 @@ export default function NavBar() {
         <div className="text-3xl font-bold">ANH Service</div>
 
         {user ? (
-          <button
-            onClick={() => handleLogout()}
-            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-green-700"
-          >
-            Logout
-          </button>
+          <span>
+            <button
+              onClick={() => handleLogout()}
+              className="px-4 py-2 rounded bg-red-600 text-white hover:bg-green-700"
+            >
+              Logout
+            </button>
+            <button
+              className="ml-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => router.push("/collectionPage")}
+            >
+              Collection
+            </button>
+          </span>
         ) : (
           <button
             onClick={() => router.push("/loginPage")}

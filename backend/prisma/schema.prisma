@@ -16,9 +16,42 @@ model Bookmark {
   lng       Float
   createdAt DateTime @default(now())
 }
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+    password  String
   createdAt DateTime @default(now())
+  name      String?
+  // relation back-reference
+  favorites Favourite[] 
+}
+
+// 
+model ChargingStation {
+  id        Int        @id @default(autoincrement())
+  lat      Float
+  lng      Float
+  title     String
+  address   String?
+  // relation back-reference
+  favoritedBy Favourite[]
+}
+
+// 3. favorite model to link User and ChargingStation
+model Favourite {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) //timestamp of when the favorite was created
+
+  // connect to user
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  // connect to ChargingStation
+  post      ChargingStation     @relation(fields: [postId], references: [id])
+  postId    Int
+
+  // prevent duplicate favorites
+  // prevent a user from favoriting the same ChargingStation multiple times
+  @@unique([userId, postId])
 }

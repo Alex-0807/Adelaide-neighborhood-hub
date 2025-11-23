@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { use, useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot } from "react-dom/client";
@@ -9,6 +9,8 @@ import TransitPopup, {
 } from "@/components/map/popups/TransitPopup";
 import { mountReactPopup } from "@/utils/maplibre";
 import { addBookmark } from "@/services/api";
+import { AuthUser, useAuth } from "@/hooks/useAuth";
+
 type Item = {
   id: number;
   title: string;
@@ -53,27 +55,46 @@ function goDirection(lat: number, lng: number) {
   const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   window.open(url, "_blank");
 }
-async function handlecollection() {
+async function handlecollection(item: Item) {
   console.log("handle collection started");
+  console.log("Item to collect:", item);
   try {
-    const res = await addBookmark({
-      userId: "123",
-      title: "Sample Bookmark",
-      address: "123 Sample St, Sample City",
-      lat: -34.9285,
-      lng: 138.6007,
+    const res = await fetch("http://localhost:3001/favourite", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: item.title,
+        address: item.address,
+        lat: item.lat,
+        lng: item.lng,
+        postId: item.id, // Ensure postId is sent
+      }),
     });
-    console.log("Bookmark added:", res);
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error("Failed to add favourite:", data);
+      alert(`Failed to add favourite: ${data.error || "Unknown error"}`);
+    } else {
+      console.log("favourite added:", data);
+      alert("Added to favourites!");
+    }
   } catch (error) {
-    console.log("Error adding bookmark:", error);
+    console.log("Error adding favourites:", error);
+    alert("Network error while adding favourite");
   }
 }
 function EVPopup({
   item,
   goDirection,
+  user,
 }: {
   item: Item;
   goDirection: () => void;
+  user: AuthUser | null;
 }) {
   return (
     <div>
@@ -90,12 +111,14 @@ function EVPopup({
       >
         Direction
       </button>
-      <button
-        onClick={handlecollection}
-        className="mt-2 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
-      >
-        Collect
-      </button>
+      {user && (
+        <button
+          onClick={() => handlecollection(item)} //arrow function to pass parameter, without arrow function it will execute immediately
+          className="mt-2 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+        >
+          Collect
+        </button>
+      )}
     </div>
   );
 }
@@ -107,6 +130,7 @@ export default function EVMap({
   onSelect,
   stops,
 }: EVMapProps) {
+  const { user } = useAuth();
   const mapContainer = useRef<HTMLDivElement>(null); // could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null); // store the map instance
   const markersRef = useRef<MarkerEntry[]>([]); // array to store the markers, useless for now, probable useful in the future
@@ -198,6 +222,7 @@ export default function EVMap({
         <EVPopup
           item={item}
           goDirection={() => goDirection(item.lat, item.lng)}
+          user={user}
         />
       );
       const popup = new maplibregl.Popup({ closeOnClick: false }).setDOMContent(

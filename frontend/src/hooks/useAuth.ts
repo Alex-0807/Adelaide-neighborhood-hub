@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
+export type AuthUser = {
+  userId: number;
+};
+
 export function useAuth() {
-  type User = {
-    userId: number;
-  };
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
