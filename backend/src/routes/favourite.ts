@@ -94,5 +94,33 @@ router.get("/", auth, async (req, res) => {
       .json({ error: "Internal Server Error", details: error.message });
   }
 });
+router.delete("/:id", auth, async (req, res) => {
+  //We use dynamic route to send the id rather than in the body, because DELETE requests typically do not have a body.
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authorized" });
+    }
+    const userId = req.user.userId;
+    const favId = parseInt(req.params.id, 10); // get :id from URL parameter
 
+    const favourite = await prisma.favourite.findUnique({
+      where: { id: favId },
+    });
+
+    if (!favourite || favourite.userId !== userId) {
+      return res.status(404).json({ error: "Favourite not found" });
+    }
+
+    await prisma.favourite.delete({
+      where: { id: favId },
+    });
+
+    res.json({ message: "Favourite deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting favourite:", error);
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
+  }
+});
 export default router;

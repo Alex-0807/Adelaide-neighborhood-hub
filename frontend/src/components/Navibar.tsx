@@ -15,6 +15,8 @@ export default function NavBar() {
     setUser(null);
     router.push("/loginPage");
   }
+  if (loading) return null; // without this, CSR will be conflicted with SSR and cause hydration error
+  //
   return (
     <nav className="fixed top-0 left-0 w-full bg-white z-50 shadow">
       <div className="max-w-7xl mx-auto flex items-center justify-between p-6">
@@ -36,12 +38,21 @@ export default function NavBar() {
             </button>
           </span>
         ) : (
-          <button
-            onClick={() => router.push("/loginPage")}
-            className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800"
-          >
-            Login
-          </button>
+          <span>
+            <button
+              onClick={() => router.push("/loginPage")}
+              className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800"
+            >
+              Login
+            </button>
+
+            <button
+              onClick={() => router.push("/registerPage")}
+              className="ml-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Register
+            </button>
+          </span>
         )}
       </div>
     </nav>

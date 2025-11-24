@@ -1,5 +1,10 @@
 "use client";
-
+//this component is no longer used
+//this component is no longer used
+//this component is no longer used
+//this component is no longer used
+//this component is no longer used
+//this component is no longer used
 import { useEffect } from "react";
 import { getBookmarks } from "@/services/api";
 import { get } from "http"; // <-- added this line
@@ -12,7 +17,7 @@ export default function CollectedlistContent() {
       sebBookmarks(data);
     });
   }, []);
-
+  //
   return (
     <div>
       collectedlistContent
