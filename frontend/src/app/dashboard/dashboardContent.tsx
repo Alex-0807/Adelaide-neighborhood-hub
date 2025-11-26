@@ -50,7 +50,7 @@ export type TransitNearbyResponse = {
 export default function Dashboard() {
   const sp = useSearchParams(); //searchParams could get the query params from the url
   const router = useRouter();
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [backendReady, setBackendReady] = useState(false);
   const [stations, setStations] = useState<Item[]>([]);
   const [stops, setStops] = useState<Stop[]>([]);
@@ -88,7 +88,7 @@ export default function Dashboard() {
     //check if the backend is ready
     try {
       const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/health`
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/health`
       );
       if (!resp.ok) throw new Error("Backend not ready");
       const data = await resp.json();

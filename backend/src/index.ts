@@ -1,14 +1,16 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import { z } from "zod";
 import { takeApiBudget } from "./lib/takeApiBudget.js";
 import { cache, inflight, takeUpstreamBudget } from "./lib/upstreamControl.js";
 import bookmarkRoutes from "./routes/bookmarks.js";
 import authRoutes from "./routes/auth.js";
 import favouriteRoutes from "./routes/favourite.js";
-dotenv.config();
+import prisma from "./prisma.js";
 
 const app = express();
 
@@ -23,6 +25,21 @@ app.use(cookieParser()); // parse incoming cookies (token reading later)
 //cors: only allow specific server to access
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/db-check", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", message: "Database connection successful" });
+  } catch (error: any) {
+    console.error("Database connection failed:", error);
+    res
+      .status(500)
+      .json({
+        status: "error",
+        message: "Database connection failed",
+        error: error.message,
+      });
+  }
+});
 app.get("/api/transit/nearby", (req, res) => {
   //fake data for demo
   res.json({

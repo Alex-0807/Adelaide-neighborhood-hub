@@ -1,9 +1,9 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../prisma.js";
 import { auth } from "../middlewares/auth.js";
 
 const router = express.Router();
-const prisma = new PrismaClient(); // Initialize Prisma Client, read DATABASE_URL from .env
+// prisma is imported from shared instance
 
 router.post("/", auth, async (req, res) => {
   try {

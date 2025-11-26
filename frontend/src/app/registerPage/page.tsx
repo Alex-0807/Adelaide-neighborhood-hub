@@ -1,16 +1,19 @@
 "use client";
 async function handlerRegister(e: any) {
   e.preventDefault();
-  const res = await fetch("http://localhost:3001/auth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: e.target.email.value,
-      password: e.target.password.value,
-    }),
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: e.target.email.value,
+        password: e.target.password.value,
+      }),
+    }
+  );
   const data = await res.json();
   if (res.ok) {
     console.log("Registration successful", data);
@@ -43,7 +46,10 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex flex-col space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-gray-700"
+          >
             Password
           </label>
           <input

@@ -12,7 +12,7 @@ interface CollectionItem {
 }
 
 async function getUserCollection(userId: number) {
-  const res = await fetch(`http://localhost:3001/favourite`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/favourite`, {
     method: "GET",
     credentials: "include",
   });
@@ -33,10 +33,13 @@ export default function CollectionPage() {
   async function handleDelete(itemId: number) {
     console.log("Deleting item from collection:", itemId);
 
-    const res = await fetch(`http://localhost:3001/favourite/${itemId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/favourite/${itemId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
     if (res.ok) {
       setCollection((prev) => prev.filter((item) => item.id !== itemId));
       alert("Item deleted from collection");

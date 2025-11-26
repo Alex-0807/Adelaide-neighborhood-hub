@@ -7,7 +7,7 @@ export default function NavBar() {
 
   const router = useRouter();
   async function handleLogout() {
-    await fetch("http://localhost:3001/auth/logout", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

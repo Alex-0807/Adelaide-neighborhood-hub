@@ -1,8 +1,8 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../prisma.js";
 
 const router = express.Router();
-const prisma = new PrismaClient(); // Initialize Prisma Client, read DATABASE_URL from .env
+// prisma is imported from shared instance
 
 router.get("/", async (req, res) => {
   const bookmarks = await prisma.bookmark.findMany();

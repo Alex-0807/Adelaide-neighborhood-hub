@@ -11,9 +11,12 @@ export function useAuth() {
   useEffect(() => {
     async function checkLogin() {
       try {
-        const res = await fetch("http://localhost:3001/auth/me", {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+          {
+            credentials: "include",
+          }
+        );
 
         if (res.status === 200) {
           const data = await res.json();
