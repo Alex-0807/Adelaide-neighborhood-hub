@@ -17,7 +17,25 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:3000",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // Check if the origin is allowed
+      const allowedOrigins = [
+        /^http:\/\/localhost:\d+$/, // Allow any localhost port
+        /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel deployment
+        /^https:\/\/adelaide-neighborhood-hub.*$/, // Allow custom domain if any
+      ];
+
+      const isAllowed = allowedOrigins.some((pattern) => pattern.test(origin));
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true, // allow browsers to include cookies
   })
 );
@@ -31,13 +49,11 @@ app.get("/api/db-check", async (_req, res) => {
     res.json({ status: "ok", message: "Database connection successful" });
   } catch (error: any) {
     console.error("Database connection failed:", error);
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Database connection failed",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed",
+      error: error.message,
+    });
   }
 });
 app.get("/api/transit/nearby", (req, res) => {
