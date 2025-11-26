@@ -11,7 +11,7 @@ interface CollectionItem {
   postId: number;
 }
 
-async function getUserCollection(userId: number) {
+async function getUserCollection() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/favourite`, {
     method: "GET",
     credentials: "include",
@@ -23,13 +23,24 @@ async function getUserCollection(userId: number) {
 export default function CollectionPage() {
   const { user } = useAuth();
   const [collection, setCollection] = useState<CollectionItem[]>([]);
-  async function loadCollection() {
-    console.log("Loading collection for user:", user!.userId);
 
-    const data = await getUserCollection(user!.userId);
-    setCollection(data);
-    console.log("Loaded collection:", data);
-  }
+  useEffect(() => {
+    console.log("user changed:", user);
+
+    async function loadCollection() {
+      if (!user) return;
+      console.log("Loading collection for user:", user.userId);
+
+      const data = await getUserCollection();
+      setCollection(data);
+      console.log("Loaded collection:", data);
+    }
+
+    if (user) {
+      loadCollection();
+    }
+  }, [user]);
+
   async function handleDelete(itemId: number) {
     console.log("Deleting item from collection:", itemId);
 
@@ -47,13 +58,7 @@ export default function CollectionPage() {
       console.error("Failed to delete item from collection");
     }
   }
-  useEffect(() => {
-    console.log("user changed:", user);
 
-    if (user) {
-      loadCollection();
-    }
-  }, [user]);
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">My Collection</h1>

@@ -1,6 +1,8 @@
 "use client";
-async function handlerRegister(e: any) {
+async function handlerRegister(e: React.FormEvent<HTMLFormElement>) {
   e.preventDefault();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const target = e.target as any;
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`,
     {
@@ -9,8 +11,8 @@ async function handlerRegister(e: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: e.target.email.value,
-        password: e.target.password.value,
+        email: target.email.value,
+        password: target.password.value,
       }),
     }
   );

@@ -7,7 +7,7 @@
 //this component is no longer used
 import { useEffect } from "react";
 import { getBookmarks } from "@/services/api";
-import { get } from "http"; // <-- added this line
+// import { get } from "http"; // <-- added this line
 import { useState } from "react";
 export default function CollectedlistContent() {
   const [bookmarks, sebBookmarks] = useState([]);
@@ -21,11 +21,13 @@ export default function CollectedlistContent() {
   return (
     <div>
       collectedlistContent
-      {bookmarks.map((bookmark: any) => (
-        <li key={bookmark.id}>
-          {bookmark.title} - {bookmark.address}
-        </li>
-      ))}
+      {bookmarks.map(
+        (bookmark: { id: number; title: string; address: string }) => (
+          <li key={bookmark.id}>
+            {bookmark.title} - {bookmark.address}
+          </li>
+        )
+      )}
     </div>
   );
 }

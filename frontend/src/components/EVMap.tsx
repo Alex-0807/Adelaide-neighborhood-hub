@@ -1,12 +1,10 @@
 "use client";
 
-import { use, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot } from "react-dom/client";
-import TransitPopup, {
-  TransitStopItem,
-} from "@/components/map/popups/TransitPopup";
+import TransitPopup from "@/components/map/popups/TransitPopup";
 import { mountReactPopup } from "@/utils/maplibre";
 import { AuthUser, useAuth } from "@/hooks/useAuth";
 

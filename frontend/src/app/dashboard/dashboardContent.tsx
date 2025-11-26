@@ -1,10 +1,10 @@
 "use client"; //use client could make the component a client component, so it could use browser api like useState, useEffect, etc.
 
-import { useMemo, useEffect, useState, use } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NearbyEV from "@/components/EVList";
 import EVMap from "@/components/EVMap";
-import { log } from "console";
+// import { log } from "console";
 // import { toast } from "@/components/ui/use-toast";
 
 type Item = {
@@ -73,16 +73,16 @@ export default function Dashboard() {
   }, [sp]); //this useMemo could memoize the params object, so it only recalculates when sp changes
 
   // if params are not valid, show an error message
-  if (!params.valid) {
-    return (
-      <main className="p-6 space-y-3">
-        <div className="text-red-600">invalid location</div>
-        <button onClick={() => router.push("/")} className="underline">
-          ← Back to Home
-        </button>
-      </main>
-    );
-  }
+  // if (!params.valid) {
+  //   return (
+  //     <main className="p-6 space-y-3">
+  //       <div className="text-red-600">invalid location</div>
+  //       <button onClick={() => router.push("/")} className="underline">
+  //         ← Back to Home
+  //       </button>
+  //     </main>
+  //   );
+  // }
 
   async function checkBackendHealth() {
     //check if the backend is ready
@@ -144,7 +144,18 @@ export default function Dashboard() {
       }
     };
     loadStations().catch(console.error);
-  }, [params.lat, params.lng, params.distance_km]);
+  }, [params.lat, params.lng, params.distance_km, API_BASE]);
+
+  if (!params.valid) {
+    return (
+      <main className="p-6 space-y-3">
+        <div className="text-red-600">invalid location</div>
+        <button onClick={() => router.push("/")} className="underline">
+          ← Back to Home
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main className="p-6 space-y-6">

@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar from "../../components/Navibar";
-import { useAuth } from "../../hooks/useAuth";
+// import NavBar from "../../components/Navibar";
+// import { useAuth } from "../../hooks/useAuth";
 
 type Phase = "idle" | "locating";
 
 export default function Home() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  // const { user, loading } = useAuth();
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
