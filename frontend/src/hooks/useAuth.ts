@@ -24,7 +24,7 @@ export function useAuth() {
         } else {
           setUser(null);
         }
-      } catch (err) {
+      } catch {
         setUser(null);
       } finally {
         setLoading(false);

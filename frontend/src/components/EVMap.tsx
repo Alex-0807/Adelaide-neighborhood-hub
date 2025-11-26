@@ -8,7 +8,6 @@ import TransitPopup, {
   TransitStopItem,
 } from "@/components/map/popups/TransitPopup";
 import { mountReactPopup } from "@/utils/maplibre";
-import { addBookmark } from "@/services/api";
 import { AuthUser, useAuth } from "@/hooks/useAuth";
 
 type Item = {
@@ -149,7 +148,7 @@ export default function EVMap({
   console.log("stops", stops);
 
   console.log("selected id:", selectedId);
-  const selectedItem = items.find((i) => i.id === selectedId) ?? null;
+  // const selectedItem = items.find((i) => i.id === selectedId) ?? null;
 
   // initialize the map only once
   useEffect(() => {
@@ -206,7 +205,7 @@ export default function EVMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [center.lat, center.lng]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -251,7 +250,7 @@ export default function EVMap({
       //   marker.togglePopup();
       // }
     });
-  }, [items]);
+  }, [items, onSelect, user]);
 
   useEffect(() => {
     if (!mapRef.current || !stops) return;
