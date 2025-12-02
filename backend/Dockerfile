@@ -28,6 +28,8 @@ FROM node:20-slim AS production
 
 WORKDIR /app
 
+ENV NODE_ENV=production
+
 # Only copy necessary files for production
 COPY package*.json ./
 COPY --from=builder /app/dist ./dist

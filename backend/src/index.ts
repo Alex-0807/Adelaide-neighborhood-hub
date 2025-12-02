@@ -14,6 +14,8 @@ import prisma from "./prisma.js";
 
 const app = express();
 
+app.set("trust proxy", 1); // Trust first proxy (AWS ALB/CloudFront)
+
 app.use(express.json());
 app.use(
   cors({
@@ -26,6 +28,8 @@ app.use(
         /^http:\/\/localhost:\d+$/, // Allow any localhost port
         /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel deployment
         /^https:\/\/adelaide-neighborhood-hub.*$/, // Allow custom domain if any
+        /^https:\/\/adelaidehub\.app$/, // Allow production domain
+        /^https:\/\/www\.adelaidehub\.app$/, // Allow production domain www
       ];
 
       const isAllowed = allowedOrigins.some((pattern) => pattern.test(origin));

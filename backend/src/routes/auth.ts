@@ -3,6 +3,17 @@ import bcrypt from "bcryptjs";
 import prisma from "../prisma.js";
 import jwt from "jsonwebtoken";
 import { auth } from "../middlewares/auth.js";
+import type { CookieOptions } from "express";
+
+const isProd = process.env.NODE_ENV === "production";
+// In AWS, NODE_ENV is set to "production" by default
+
+const authCookieOptions: CookieOptions = {
+  httpOnly: true,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  sameSite: isProd ? "none" : "lax",
+  secure: isProd, // only require HTTPS in production
+};
 const router = express.Router();
 router.post("/register", async (req, res) => {
   const { email, password } = req.body;
@@ -54,10 +65,7 @@ router.post("/login", async (req, res) => {
     process.env.JWT_SECRET as string,
     { expiresIn: "7d" }
   );
-  res.cookie("token", token, {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie("token", token, authCookieOptions);
   res.json({ message: "Login successful", token });
 });
 router.get("/me", auth, (req, res) => {
@@ -67,9 +75,7 @@ router.get("/me", auth, (req, res) => {
   res.json({ userId: req.user.userId });
 });
 router.post("/logout", (req, res) => {
-  // clear cookie
-  res.clearCookie("token");
-
+  res.clearCookie("token", authCookieOptions);
   res.json({ message: "Logged out" });
 });
 export default router;
