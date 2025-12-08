@@ -11,6 +11,8 @@ import bookmarkRoutes from "./routes/bookmarks.js";
 import authRoutes from "./routes/auth.js";
 import favouriteRoutes from "./routes/favourite.js";
 import prisma from "./prisma.js";
+import http from "http";
+import { setupWebSocketServer } from "./routes/realTime/websocket.js";
 
 const app = express();
 
@@ -252,6 +254,14 @@ app.use("/auth", authRoutes);
 app.use("/favourite", favouriteRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
-app.listen(port, () => {
+
+const server = http.createServer(app);
+setupWebSocketServer(server); // Setup WebSocket server
+//because we need to attach websocket, we can not use app.listen
+server.listen(port, () => {
   console.log(`API listening on http://localhost:${port}`);
 });
+
+// app.listen(port, () => {
+//   console.log(`API listening on http://localhost:${port}`);
+// });
