@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      # Use the Neon database URL directly
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: 3001
+      ALLOWED_ORIGIN: http://localhost:3000
+      OCM_API_KEY: ${OCM_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3001:3001"
+    # Run migrations before starting the app
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+    depends_on:
+      - backend
+
+# No volumes needed since we are using a remote DB
+
