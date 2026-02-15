@@ -13,7 +13,7 @@ import favouriteRoutes from "./routes/favourite.js";
 import prisma from "./prisma.js";
 import http from "http";
 import { setupWebSocketServer } from "./routes/realTime/websocket.js";
-
+import { TransitRouter } from "./routes/realTime/realtimeFetcher.js";
 const app = express();
 
 app.set("trust proxy", 1); // Trust first proxy (AWS ALB/CloudFront)
@@ -43,7 +43,7 @@ app.use(
       }
     },
     credentials: true, // allow browsers to include cookies
-  })
+  }),
 );
 app.use(cookieParser()); // parse incoming cookies (token reading later)
 //cors: only allow specific server to access
@@ -62,6 +62,8 @@ app.get("/api/db-check", async (_req, res) => {
     });
   }
 });
+app.use("/api/transit", TransitRouter);
+
 app.get("/api/transit/nearby", (req, res) => {
   //fake data for demo
   res.json({
@@ -182,7 +184,7 @@ app.get("/api/ev/nearby", async (req, res) => {
     if (!token.ok) {
       res.setHeader(
         "Retry-After",
-        Math.ceil((token.reset - Date.now()) / 1000)
+        Math.ceil((token.reset - Date.now()) / 1000),
       );
       if (cached) return res.json(cached.data);
       return res.status(429).json({
@@ -234,7 +236,7 @@ app.get("/api/ev/nearby", async (req, res) => {
       query: { distance_km, max },
     };
     cache.set(key, { expire: Date.now() + 1 * 60 * 1000, data });
-    console.log("cache write", cached, cache.get(key));
+    // console.log("cache write", cached, cache.get(key));
 
     res.json({
       center: { lat, lng },

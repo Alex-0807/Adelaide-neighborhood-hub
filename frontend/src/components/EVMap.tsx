@@ -71,7 +71,7 @@ async function handlecollection(item: Item) {
           lng: item.lng,
           postId: item.id, // Ensure postId is sent
         }),
-      }
+      },
     );
 
     const data = await res.json();
@@ -223,10 +223,10 @@ export default function EVMap({
           item={item}
           goDirection={() => goDirection(item.lat, item.lng)}
           user={user}
-        />
+        />,
       );
       const popup = new maplibregl.Popup({ closeOnClick: false }).setDOMContent(
-        node
+        node,
       );
 
       const marker = new maplibregl.Marker({
@@ -257,7 +257,7 @@ export default function EVMap({
     transitMarkersRef.current = [];
 
     stops.forEach((stop) => {
-      console.log("Adding transit stop marker:", stop);
+      // console.log("Adding transit stop marker:", stop);
 
       const { popup, destroy } = mountReactPopup(
         <TransitPopup
@@ -266,7 +266,7 @@ export default function EVMap({
         />,
         {
           closeButton: false,
-        }
+        },
       );
 
       const marker = new maplibregl.Marker({ color: "orange" })

@@ -13,13 +13,18 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "3001:3001"
-    # Run migrations before starting the app
-    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    # Run migrations using tsx directly or just start dev server.
+    # Usually in dev we want "npm run dev" which maps to "tsx watch src/index.ts"
+    command: sh -c "npx prisma generate && npm run dev"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: deps
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
     restart: always
@@ -27,6 +32,12 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+      # Enable polling for hot reload on some systems
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
     depends_on:
       - backend
 

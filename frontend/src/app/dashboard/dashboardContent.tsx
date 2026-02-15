@@ -1,9 +1,11 @@
 "use client"; //use client could make the component a client component, so it could use browser api like useState, useEffect, etc.
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, use } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NearbyEV from "@/components/EVList";
 import EVMap from "@/components/EVMap";
+import { getVehiclePositions } from "@/services/api";
+import { log } from "console";
 // import { log } from "console";
 // import { toast } from "@/components/ui/use-toast";
 
@@ -88,7 +90,7 @@ export default function Dashboard() {
     //check if the backend is ready
     try {
       const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/health`
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/health`,
       );
       if (!resp.ok) throw new Error("Backend not ready");
       const data = await resp.json();
@@ -111,6 +113,23 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    console.log("Useeffect for vehicles");
+
+    if (backendReady) {
+      const fetchVehiclePositions = async () => {
+        const data = await getVehiclePositions();
+        console.log("Vehicle positions:", data);
+      };
+      try {
+        console.log("Fetching Vehicle...");
+
+        fetchVehiclePositions();
+      } catch (e) {
+        console.error("Failed to fetch vehicle positions - frontend:", e);
+      }
+    }
+  }, [backendReady]);
   // fetch the nearby ev stations when params change
   useEffect(() => {
     console.log(API_BASE, "api base");
