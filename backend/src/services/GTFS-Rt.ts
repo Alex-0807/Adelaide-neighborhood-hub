@@ -1,6 +1,7 @@
 import axios from "axios";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import { TTLCache } from "../lib/ttlCache.js";
+import e from "express";
 
 const BASE_URL =
   process.env.AM_GTFSRT_BASE_URL ?? "https://gtfs.adelaidemetro.com.au/v1";
@@ -115,4 +116,41 @@ export async function getVehiclePositions(): Promise<{
     console.error("Error fetching or parsing GTFS-RT feed:", e);
     throw e;
   }
+}
+export function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const R = 6371; // Earth radius in km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+export async function getNearbyVehicles(
+  lat: number,
+  lng: number,
+  radiusKm: number,
+): Promise<VehiclePositionsPayload> {
+  const { data } = await getVehiclePositions();
+  const filteredVehicles = data.vehicles.filter((v) => {
+    if (v.lat === null || v.lon === null) return false;
+    const distance = haversineDistance(lat, lng, v.lat, v.lon);
+    return distance <= radiusKm;
+  });
+
+  return {
+    ...data,
+    entityCount: filteredVehicles.length,
+    vehicles: filteredVehicles,
+  };
 }

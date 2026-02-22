@@ -3,7 +3,7 @@
 import { useMemo, useEffect, useState, use } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NearbyEV from "@/components/EVList";
-import EVMap from "@/components/EVMap";
+import EVMap from "@/components/map/EVMap";
 import { getVehiclePositions } from "@/services/api";
 import { log } from "console";
 // import { log } from "console";
@@ -40,15 +40,15 @@ export type Stop = {
   departures: Departure[];
 };
 
-export type TransitNearbyResponse = {
-  center: { lat: number; lng: number };
-  stops: Stop[];
-  meta: {
-    realtime: boolean;
-    lastTripUpdatesAt: number | null;
-    fetchedAt: number;
-  };
-};
+// export type TransitNearbyResponse = {
+//   center: { lat: number; lng: number };
+//   stops: Stop[];
+//   meta: {
+//     realtime: boolean;
+//     lastTripUpdatesAt: number | null;
+//     fetchedAt: number;
+//   };
+// };
 export default function Dashboard() {
   const sp = useSearchParams(); //searchParams could get the query params from the url
   const router = useRouter();
@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [backendReady, setBackendReady] = useState(false);
   const [stations, setStations] = useState<Item[]>([]);
   const [stops, setStops] = useState<Stop[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]); //vehicle position from the backend, the type is not defined yet
   const [selectedId, setSelectedId] = useState<number>(107781);
 
   const params = useMemo(() => {
@@ -118,8 +119,9 @@ export default function Dashboard() {
 
     if (backendReady) {
       const fetchVehiclePositions = async () => {
-        const data = await getVehiclePositions();
+        const data = await getVehiclePositions(params.lat, params.lng);
         console.log("Vehicle positions:", data);
+        setVehicles(data.vehicles);
       };
       try {
         console.log("Fetching Vehicle...");
@@ -149,17 +151,6 @@ export default function Dashboard() {
         setStations(data.items);
       } catch {
         alert("failed to fetch nerby EV stations, please try again later");
-      }
-
-      //fetch the station detail when params change
-      try {
-        const resp = await fetch(`${API_BASE}/api/transit/nearby?${qs}`);
-        if (!resp.ok) throw new Error(await resp.text());
-        const data = await resp.json();
-        setStops(data.stops);
-        console.log("transit stops", data.stops);
-      } catch {
-        alert("failed to fetch transit data");
       }
     };
     loadStations().catch(console.error);
@@ -208,6 +199,7 @@ export default function Dashboard() {
           selectedId={selectedId}
           onSelect={setSelectedId}
           stops={stops}
+          vehicles={vehicles}
         />
       </section>
 

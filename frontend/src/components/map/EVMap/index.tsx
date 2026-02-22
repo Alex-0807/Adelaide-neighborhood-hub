@@ -6,122 +6,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot } from "react-dom/client";
 import TransitPopup from "@/components/map/popups/TransitPopup";
 import { mountReactPopup } from "@/utils/maplibre";
-import { AuthUser, useAuth } from "@/hooks/useAuth";
-
-type Item = {
-  id: number;
-  title: string;
-  lat: number;
-  lng: number;
-  address?: string;
-  distanceKm?: number;
-  status?: string;
-  powerKW?: number;
-  connectionType?: string;
-};
-type Departure = {
-  routeShort: string;
-  headsign: string | null;
-  etaMin: number;
-  tripId: string;
-  vehicleId: string | null;
-  routeColor?: string;
-};
-type Stop = {
-  stopId: string;
-  name: string;
-  lat: number;
-  lng: number;
-  distanceM: number;
-  departures: Departure[];
-};
-type MarkerEntry = {
-  id: number;
-  marker: maplibregl.Marker;
-  popup: maplibregl.Popup;
-};
-type EVMapProps = {
-  center: { lat: number; lng: number };
-  items: Item[];
-  selectedId?: number;
-  onSelect: (id: number) => void;
-  stops?: Stop[];
-};
-
-function goDirection(lat: number, lng: number) {
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-  window.open(url, "_blank");
-}
-async function handlecollection(item: Item) {
-  console.log("handle collection started");
-  console.log("Item to collect:", item);
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/favourite`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: item.title,
-          address: item.address,
-          lat: item.lat,
-          lng: item.lng,
-          postId: item.id, // Ensure postId is sent
-        }),
-      },
-    );
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error("Failed to add favourite:", data);
-      alert(`Failed to add favourite: ${data.error || "Unknown error"}`);
-    } else {
-      console.log("favourite added:", data);
-      alert("Added to favourites!");
-    }
-  } catch (error) {
-    console.log("Error adding favourites:", error);
-    alert("Network error while adding favourite");
-  }
-}
-function EVPopup({
-  item,
-  goDirection,
-  user,
-}: {
-  item: Item;
-  goDirection: () => void;
-  user: AuthUser | null;
-}) {
-  return (
-    <div>
-      <div>
-        <strong>{item.title}</strong>
-      </div>
-      <div>{item.distanceKm?.toFixed(2)} km away</div>
-      <div>{item.address}</div>
-      <div>Type: {item.connectionType || "N/A"}</div>
-      <div>Power: {item.powerKW ? item.powerKW + " kW" : "N/A"}</div>
-      <button
-        onClick={goDirection}
-        className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
-      >
-        Direction
-      </button>
-      {user && (
-        <button
-          onClick={() => handlecollection(item)} //arrow function to pass parameter, without arrow function it will execute immediately
-          className="mt-2 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
-        >
-          Collect
-        </button>
-      )}
-    </div>
-  );
-}
+import { useAuth } from "@/hooks/useAuth";
+import { EVMapProps, MarkerEntry } from "./types";
+import { goDirection } from "./utils";
+import EVPopup from "./EVPopup";
 
 export default function EVMap({
   center,
@@ -129,6 +17,7 @@ export default function EVMap({
   selectedId,
   onSelect,
   stops,
+  vehicles,
 }: EVMapProps) {
   const { user } = useAuth();
   const mapContainer = useRef<HTMLDivElement>(null); // could use it to control the div element by ref
@@ -142,10 +31,19 @@ export default function EVMap({
       destroy?: () => void;
     }[]
   >([]);
-  // console.log('items',items);
-  console.log("stops", stops);
 
-  console.log("selected id:", selectedId);
+  const vehicleMarkersRef = useRef<
+    {
+      id: string;
+      marker: maplibregl.Marker;
+      popup: maplibregl.Popup;
+    }[]
+  >([]);
+
+  // console.log('items',items);
+  // console.log("stops", stops);
+
+  // console.log("selected id:", selectedId);
   // const selectedItem = items.find((i) => i.id === selectedId) ?? null;
 
   // initialize the map only once
@@ -196,9 +94,9 @@ export default function EVMap({
       ro = new ResizeObserver(() => mapRef.current?.resize());
       ro.observe(mapContainer.current);
     }
-
+    //return only happens when the component unmounts, so it's a good place to do cleanup
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf); // cancel the map creation if the component unmounts before it finishes
       ro?.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
@@ -251,37 +149,50 @@ export default function EVMap({
   }, [items, onSelect, user]);
 
   useEffect(() => {
-    if (!mapRef.current || !stops) return;
+    if (!mapRef.current || !vehicles) return;
 
-    transitMarkersRef.current.forEach((m) => m.marker.remove());
-    transitMarkersRef.current = [];
+    // Clear old vehicle markers
+    vehicleMarkersRef.current.forEach((m) => m.marker.remove());
+    vehicleMarkersRef.current = [];
 
-    stops.forEach((stop) => {
-      // console.log("Adding transit stop marker:", stop);
+    vehicles.forEach((vehicle: any) => {
+      // Create a simple popup content
+      const popupContent = `
+        <div class="p-2">
+          <div class="font-bold">Bus ${vehicle.label || vehicle.vehicleId}</div>
+          <div class="text-sm">Route: ${vehicle.routeId}</div>
+          <div class="text-xs text-gray-500">Speed: ${Math.round((vehicle.speed || 0) * 3.6)} km/h</div> 
+        </div>
+      `;
 
-      const { popup, destroy } = mountReactPopup(
-        <TransitPopup
-          stop={stop}
-          onDirection={() => goDirection(stop.lat, stop.lng)}
-        />,
-        {
-          closeButton: false,
-        },
-      );
+      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(popupContent);
 
-      const marker = new maplibregl.Marker({ color: "orange" })
-        .setLngLat([stop.lng, stop.lat])
+      // Create a custom DOM element for the marker (Bus Icon)
+      const el = document.createElement("div");
+      el.className = "bus-marker";
+      el.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#7c3aed" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 10h16v6a2 2 0 0 1-2 2h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2v-6Z"/>
+          <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/>
+          <path d="M2 10h20"/>
+          <circle cx="7" cy="14" r="1.5" fill="white"/>
+          <circle cx="17" cy="14" r="1.5" fill="white"/>
+        </svg>
+      `;
+
+      // Create vehicle marker with the custom element
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([vehicle.lon, vehicle.lat])
         .setPopup(popup)
         .addTo(mapRef.current!);
 
-      transitMarkersRef.current.push({
-        id: stop.stopId,
+      vehicleMarkersRef.current.push({
+        id: vehicle.vehicleId,
         marker,
         popup,
-        destroy,
       });
     });
-  }, [stops]);
+  }, [vehicles]);
 
   //when selectedId changes, open the popup for the selected marker and close others
   useEffect(() => {
