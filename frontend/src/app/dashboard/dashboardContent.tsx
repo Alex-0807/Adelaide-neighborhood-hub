@@ -1,11 +1,11 @@
 "use client"; //use client could make the component a client component, so it could use browser api like useState, useEffect, etc.
 
-import { useMemo, useEffect, useState, use } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NearbyEV from "@/components/EVList";
 import EVMap from "@/components/map/EVMap";
+import { Vehicle } from "@/components/map/EVMap/types";
 import { getVehiclePositions } from "@/services/api";
-import { log } from "console";
 // import { log } from "console";
 // import { toast } from "@/components/ui/use-toast";
 
@@ -55,8 +55,8 @@ export default function Dashboard() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [backendReady, setBackendReady] = useState(false);
   const [stations, setStations] = useState<Item[]>([]);
-  const [stops, setStops] = useState<Stop[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]); //vehicle position from the backend, the type is not defined yet
+  const [stops] = useState<Stop[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]); //vehicle position from the backend, the type is not defined yet
   const [selectedId, setSelectedId] = useState<number>(107781);
 
   const params = useMemo(() => {
@@ -131,6 +131,7 @@ export default function Dashboard() {
         console.error("Failed to fetch vehicle positions - frontend:", e);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendReady]);
   // fetch the nearby ev stations when params change
   useEffect(() => {

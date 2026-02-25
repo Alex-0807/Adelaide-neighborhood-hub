@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"No frontend tests yet\""
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

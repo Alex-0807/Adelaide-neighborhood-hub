@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { createRoot } from "react-dom/client";
-import TransitPopup from "@/components/map/popups/TransitPopup";
-import { mountReactPopup } from "@/utils/maplibre";
+// import TransitPopup from "@/components/map/popups/TransitPopup";
+// import { mountReactPopup } from "@/utils/maplibre";
 import { useAuth } from "@/hooks/useAuth";
-import { EVMapProps, MarkerEntry } from "./types";
+import { EVMapProps, MarkerEntry, Vehicle } from "./types";
 import { goDirection } from "./utils";
 import EVPopup from "./EVPopup";
 
@@ -16,21 +16,21 @@ export default function EVMap({
   items,
   selectedId,
   onSelect,
-  stops,
+  // stops,
   vehicles,
 }: EVMapProps) {
   const { user } = useAuth();
   const mapContainer = useRef<HTMLDivElement>(null); // could use it to control the div element by ref
   const mapRef = useRef<maplibregl.Map | null>(null); // store the map instance
   const markersRef = useRef<MarkerEntry[]>([]); // array to store the markers, useless for now, probable useful in the future
-  const transitMarkersRef = useRef<
-    {
-      id: string;
-      marker: maplibregl.Marker;
-      popup: maplibregl.Popup;
-      destroy?: () => void;
-    }[]
-  >([]);
+  // const transitMarkersRef = useRef<
+  //   {
+  //     id: string;
+  //     marker: maplibregl.Marker;
+  //     popup: maplibregl.Popup;
+  //     destroy?: () => void;
+  //   }[]
+  // >([]);
 
   const vehicleMarkersRef = useRef<
     {
@@ -155,7 +155,7 @@ export default function EVMap({
     vehicleMarkersRef.current.forEach((m) => m.marker.remove());
     vehicleMarkersRef.current = [];
 
-    vehicles.forEach((vehicle: any) => {
+    vehicles.forEach((vehicle: Vehicle) => {
       // Create a simple popup content
       const popupContent = `
         <div class="p-2">

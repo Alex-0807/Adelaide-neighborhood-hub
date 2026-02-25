@@ -9,7 +9,9 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo \"No backend lint yet\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"No backend tests yet\""
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",

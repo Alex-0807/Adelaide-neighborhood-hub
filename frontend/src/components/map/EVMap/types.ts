@@ -34,11 +34,20 @@ export type MarkerEntry = {
   popup: maplibregl.Popup;
 };
 
+export type Vehicle = {
+  vehicleId: string;
+  label?: string;
+  routeId?: string;
+  speed?: number;
+  lat: number;
+  lon: number;
+};
+
 export type EVMapProps = {
   center: { lat: number; lng: number };
   items: Item[];
   selectedId?: number;
   onSelect: (id: number) => void;
   stops?: Stop[];
-  vehicles?: any[]; // the type of vehicle is not defined yet, it depends on the backend response
+  vehicles?: Vehicle[]; // the type of vehicle is not defined yet, it depends on the backend response
 };
