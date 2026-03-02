@@ -40,4 +40,4 @@ COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3001
 
 # Start backend
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
